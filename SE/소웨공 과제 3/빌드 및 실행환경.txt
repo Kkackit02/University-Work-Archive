@@ -1,0 +1,47 @@
+언어: C 언어
+운영체제: Windows
+헤더 파일: <stdio.h>, <windows.h> 사용
+windows.h: Windows API 함수(Sleep, printf)를 사용하기 위해 필요
+컴파일러: GCC (Mingw-w64, Windows용) 등 C코드를 컴파일 할 수 있는 컴파일러 필요
+입출력 방식:
+4자리 바이너리 입력값(FLRD)을 사용하여 로봇 청소기의 센서 상태를 입력받아 로봇 청소기의 동작을 시뮬레이션하는 프로그램.
+
+
+입력:
+Enter the FLRD values as a 4-digit binary number 메시지로 입력에 대한 양식을 안내합니다.
+사용자는 FLRD 값을 4자리 이진수 형태(예: 1010)로 입력해야 합니다.
+각 비트가 의미하는 것은 아래와 같습니다.
+F: 전방 센서 (Front Sensor) : Detects obstacles in front of the RVC
+L: 좌측 센서 (Left Sensor) : Detects obstacles on the left side of the RVC periodically
+R: 우측 센서 (Right Sensor) : Detects obstacles on the right side of the RVC periodically
+D: 먼지 센서 (Dust Sensor) : Detects dust on the floor periodically
+
+따라서, 전방 센서에 어떤 물체가 감지된 상황을 입력으로 넣는다고 하면 "1000"을 입력합니다.
+전방, 좌측 그리고 먼지가 감지된 상황은 "1101"로 표현합니다.
+
+
+
+출력:
+입력 값에 따라 로봇 청소기의 동작이 결정됩니다.
+결과는 콘솔에 출력되며, 다음과 같은 메시지가 표시됩니다:
+
+Motor 동작에 대해서는
+"RVC is Moving Forward"
+"RVC is Turning Left" , "RVC Turned Left"
+"RVC is Turning Right" , "RVC Turned Right"
+"RVC is Turning Backward" , "RVC Turned Backward"
+
+반복된 회전으로 인한 강제 종료에 대해서는
+"Terminate!"
+
+Cleaner 동작에 대해서는
+"Dust Detected , Cleaner Power UP ON"
+"Cleaner ON"
+"Cleaner OFF"
+다음과 같은 메시지를 출력하며, 이는 RVC 시뮬레이션 결과를 의미합니다.
+
+만약 잘못된 입력을 입력하면 
+Error: The input must be a 4-digit binary number consisting of only 0 and 1. Please try again. 
+Each position corresponds to FLRD. 
+를 출력하며 다시 입력을 받습니다.
+

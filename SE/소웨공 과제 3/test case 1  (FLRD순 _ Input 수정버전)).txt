@@ -1,0 +1,126 @@
+test case 1  (FLRD순)
+Input: 0001/1001/1011/0010
+Output: Go Forward, Cleaner Up/Turn Left, Cleaner Off/Turn Left, Cleaner Off/Go Forward, Cleaner On
+
+
+test case 1  (FLRD순)
+Input: 0000
+Output: Go Forward, Cleaner On
+
+test case 2
+Input: 0001
+Output: Go Forward, Cleaner Up
+
+test case 3
+Input: 0010
+Output: Go Forward, Cleaner On
+
+test case 4
+Input: 0011
+Output: Go Forward, Cleaner Up
+
+test case 5
+Input: 0100
+Output: Go Forward, Cleaner On
+
+test case 6
+Input: 0101
+Output: Go Forward, Cleaner Up
+
+test case 7
+Input: 0110
+Output: Go Forward, Cleaner On
+
+test case 8
+Input: 0111
+Output: Go Forward, Cleaner Up
+
+test case 9
+Input: 1110
+Output: Turn Backward, Cleaner Off
+
+test case 10
+Input: 1111
+Output: Turn Backward, Cleaner Off
+
+test case 11
+Input: 1100
+Output: Turn Right, Cleaner Off
+
+test case 12
+Input: 1101
+Output: Turn Right, Cleaner Off
+
+test case 13
+Input: 1010
+Output: Turn Left, Cleaner Off
+
+test case 14
+Input: 1011
+Output: Turn Left, Cleaner Off
+
+test case 15
+Input: 1000
+Output: Turn Left, Cleaner Off
+
+test case 16
+Input: 1001
+Output: Turn Left, Cleaner Off
+
+test case 17
+Input: 0001/0000
+Output: Go Forward, Cleaner Up / Go Forward, Cleaner On
+
+test case 18
+Input: 1000/0010
+Output: Turn Left, Cleaner Off / Go Forward, Cleaner On
+
+test case 19
+Input: 0000/1110
+Output: Go Forward, Cleaner On / Turn Backward, Cleaner Off
+
+test case 20
+Input: 0000/1100
+Output: Go Forward, Cleaner On / Turn Right, Cleaner Off
+
+test case 21
+Input: 0000/1010
+Output: Go Forward, Cleaner On / Turn Left, Cleaner Off
+
+test case 22
+Input: 0000/1000
+Output: Go Forward, Cleaner On / Turn Left, Cleaner Off
+
+test case 23
+Input: 0100/1100
+Output: Go Forward, Cleaner On / Turn Right, Cleaner Off
+
+test case 24
+Input: 0010/1010
+Output: Go Forward, Cleaner On / Turn Left, Cleaner Off
+
+test case 25
+Input: 0000/1000/0010
+Output: Go Forward, Cleaner On / Turn Left, Cleaner Off / Go Forward, Cleaner On
+
+test case 26
+Input: 0000/1000/0010/1010
+Output: Go Forward, Cleaner On / Turn Left, Cleaner Off / Go Forward, Cleaner On / Turn Left, Cleaner Off
+
+test case 27
+Input: 0010/1010/0010
+Output: Go Forward, Cleaner On / Turn Left, Cleaner Off / Go Forward, Cleaner On g
+
+test case 28 
+Input: 0010/1010/0011/1100/0100
+Output: Go Forward, Cleaner On / Turn Left, Cleaner Off / Go Forward, Cleaner Up / Turn Right, Cleaner Off / Go Forward, Cleaner On
+
+test case 29
+Input: 0100/1100/0100/1101
+Output: Go Forward, Cleaner On / Turn Right, Cleaner Off / Go Forward, Cleaner On / Turn Right, Cleaner Off
+
+test case 30
+Input: 0001/1001/0011/1011/0011
+Output: Go Forward, Cleaner Up / Turn Left, Cleaner Off / Go Forward, Cleaner Up / Turn Left, Cleaner Off / Go Forward, Cleaner Up
+
+made by 김민재 힘들었다 허억허억...
