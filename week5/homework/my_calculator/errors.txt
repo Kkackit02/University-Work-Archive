@@ -1,0 +1,9 @@
+'$ =' 대신 '$$ =' 사용 오류
+parser.y: In function 'yyparse':
+parser.y:76:7: error: '$' undeclared (first use in this function)
+   : expr                   { $ = $1; }
+       ^
+원인: Bison 문법 액션 내에서 결과 값을 할당할 때 `$$` 대신 `$`를 사용했을 때 발생
+ `$`는 C 컴파일러에게 선언되지 않은 변수로 인식되어서 생기는 문제였습니다.
+
+해결: 모든 문법 액션에서 결과 값 할당 시 `$$`를 사용해야 합니다. 
