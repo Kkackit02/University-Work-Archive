@@ -31,6 +31,7 @@
 
 %token INT FLOAT CHAR VOID
 %token IF ELSE WHILE RETURN
+%token FOR
 
 %token EQ  /* == */
 %token NE  /* != */
@@ -213,6 +214,7 @@ statement
   | IF '(' expr ')' statement ELSE statement
                                 { $$ = node(NK_IF, yylineno, "else", 3, $3, $5, $7); }
   | WHILE '(' expr ')' statement{ $$ = node(NK_WHILE, yylineno, NULL, 2, $3, $5); }           /* while 문 */
+  | for_stmt
   | compound_stmt               /* 중괄호 블록 자체가 하나의 문으로 취급 */
   ;
 
@@ -314,6 +316,38 @@ primary
   | CHAR_CONST    { $$ = $1; }
   | STRING_LITERAL{ $$ = $1; }
   | '(' expr ')'  { $$ = $2; }
+  ;
+
+/* 세미콜론 없는 간단 선언: for-init에서만 사용 */
+simple_decl
+  : type_spec init_declarator_list
+    { $$ = node(NK_DECL, yylineno, NULL, 2, $1, $2); }
+  ;
+
+/* 선택적 표현식: 비어있으면 NULL */
+expr_opt
+  : /* empty */ { $$ = NULL; }
+  | expr        { $$ = $1; }
+  ;
+
+/* for 의 세 파트 */
+for_init_opt
+  : simple_decl         /* 선언형 초기식 */
+  | expr_opt            /* 표현식 또는 비어있음 */
+  ;
+
+for_cond_opt
+  : expr_opt
+  ;
+
+for_step_opt
+  : expr_opt
+  ;
+
+/* for 문 본체 */
+for_stmt
+  : FOR '(' for_init_opt ';' for_cond_opt ';' for_step_opt ')' statement
+    { $$ = node(NK_FOR, yylineno, NULL, 4, $3, $5, $7, $9); }
   ;
 
 %%  /* ===================== 문법 규칙(Grammar) 영역 끝 ===================== */
