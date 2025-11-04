@@ -24,6 +24,7 @@ typedef enum {
   NK_STMT_LIST,          // 문(statement)들의 리스트
   NK_IF,                 // if 문 (예: if (cond) stmt [else stmt])
   NK_WHILE,              // while 문 (예: while (cond) stmt)
+  NK_FOR,                // for 문 (예: for (init; cond; inc) stmt)
   NK_RETURN,             // return 문 (예: return expr;)
   NK_EXPR_STMT,          // 단독 표현식 문장 (예: a = b + c;)
   NK_ASSIGN,             // 대입식 (예: a = b;)

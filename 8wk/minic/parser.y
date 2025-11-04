@@ -10,6 +10,7 @@
   void yyerror(const char *s); // 에러 리포팅 함수 (아래에서 정의)
 
   Node *root = NULL;    // 전체 파싱 결과 AST 루트 저장용
+  #define YYSTYPE Node*
 %}
 
 /* 파서 외부에서(헤더로) 노출해야 하는 선언을 넣는 섹션 */
@@ -18,9 +19,8 @@
 }
 
 /* Bison의 값 타입을 Node* 로 지정: 각 토큰/비단말의 semantic value가 AST 노드 포인터 */
-%define api.value.type {Node*}
-/* 자세한 에러 메시지(기대 토큰 등) 출력 */
-%define parse.error verbose
+/* %define api.value.type {Node*} */
+
 
 /* -------------------------------------------------------
  * 토큰(단말 기호) 선언

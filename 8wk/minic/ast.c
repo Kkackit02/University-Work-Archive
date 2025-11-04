@@ -104,6 +104,7 @@ static const char* kind_str(NodeKind k){
     case NK_STMT_LIST: return "STMT_LIST";
     case NK_IF: return "IF";
     case NK_WHILE: return "WHILE";
+    case NK_FOR: return "FOR";
     case NK_RETURN: return "RETURN";
     case NK_EXPR_STMT: return "EXPR_STMT";
     case NK_ASSIGN: return "ASSIGN";

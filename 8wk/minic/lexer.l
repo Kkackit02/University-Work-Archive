@@ -31,6 +31,7 @@
 "void"                            { return VOID; }
 "if"                              { return IF; }
 "else"                            { return ELSE; }
+"for"                             { return FOR; }
 "while"                           { return WHILE; }
 "return"                          { return RETURN; }
 
