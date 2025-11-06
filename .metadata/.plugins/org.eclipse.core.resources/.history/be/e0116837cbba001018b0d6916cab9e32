@@ -1,0 +1,10 @@
+package Singleton;
+
+public class ChocolateBoiler {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
+}

@@ -1,0 +1,306 @@
+
+  Page 51: `TemperatureModel.java`
+
+
+    1 public class TemperatureModel extends java.util.Observable {
+    2     private double temperatureC = 27;
+    3
+    4     public double getC() {
+    5         return temperatureC;
+    6     }
+    7
+    8     public void setC(double tempC) {
+    9         temperatureC = tempC;
+   10         setChanged();
+   11         this.notifyObservers();
+   12     }
+   13
+   14     public void notifyObservers() {
+   15         super.notifyObservers();
+   16     }
+   17 }
+
+
+
+  Page 52: `TemperatureGUI.java` (View: Textbox)
+
+
+     1 import java.awt.Button;
+     2 import java.awt.Frame;
+     3 import java.awt.Label;
+     4 import java.awt.Panel;
+     5 import java.awt.TextField;
+     6 import java.awt.event.ActionEvent;
+     7 import java.awt.event.ActionListener;
+     8 import java.awt.event.WindowAdapter;
+     9 import java.awt.event.WindowEvent;
+    10 import java.util.Observable;
+    11 import java.util.Observer;
+    12
+    13 public class TemperatureGUI implements Observer {
+    14     private String label;
+    15     private TemperatureModel model;
+    16     private Frame temperatureFrame;
+    17     private TextField display = new TextField();
+    18     private Button upButton = new Button("Raise");
+    19     private Button downButton = new Button("Lower");
+    20
+    21     public TemperatureGUI(TemperatureModel model, int h, int v) {
+    22         this.label = "Celsius Temperature";
+    23         this.model = model;
+    24         temperatureFrame = new Frame(label);
+    25         temperatureFrame.add("North", new Label(label));
+    26         temperatureFrame.add("Center", display);
+    27         Panel buttons = new Panel();
+    28         buttons.add(upButton);
+    29         buttons.add(downButton);
+    30         temperatureFrame.add("South", buttons);
+    31         temperatureFrame.addWindowListener(new CloseListener());
+    32         model.addObserver(this); // Connect the View to the Model
+    33         temperatureFrame.setSize(200, 200);
+    34         temperatureFrame.setLocation(h, v);
+    35         temperatureFrame.setVisible(true);
+    36
+    37         setDisplay("" + model.getC());
+    38         addUpListener(new UpListener());
+    39         addDownListener(new DownListener());
+    40         addDisplayListener(new DisplayListener());
+    41     }
+    42
+    43     public double getDisplay() {
+    44         double result = 0.0;
+    45         try {
+    46             result = Double.valueOf(display.getText()).doubleValue();
+    47         } catch (NumberFormatException e) {
+    48             // Handle error if text is not a valid number
+    49         }
+    50         return result;
+    51     }
+    52
+    53     public void setDisplay(String s) {
+    54         display.setText(s);
+    55     }
+    56
+    57     public void addDisplayListener(ActionListener a) {
+    58         display.addActionListener(a);
+    59     }
+    60
+    61     public void addUpListener(ActionListener a) {
+    62         upButton.addActionListener(a);
+    63     }
+    64
+    65     public void addDownListener(ActionListener a) {
+    66         downButton.addActionListener(a);
+    67     }
+    68
+    69     protected TemperatureModel model() {
+    70         return model;
+    71     }
+    72
+    73     @Override
+    74     public void update(Observable t, Object o) {
+    75         setDisplay("" + model().getC());
+    76     }
+    77
+    78     class UpListener implements ActionListener {
+    79         @Override
+    80         public void actionPerformed(ActionEvent e) {
+    81             model().setC(model().getC() + 1.0);
+    82         }
+    83     }
+    84
+    85     class DownListener implements ActionListener {
+    86         @Override
+    87         public void actionPerformed(ActionEvent e) {
+    88             model().setC(model().getC() - 1.0);
+    89         }
+    90     }
+    91
+    92     class DisplayListener implements ActionListener {
+    93         @Override
+    94         public void actionPerformed(ActionEvent e) {
+    95             double value = getDisplay();
+    96             model().setC(value);
+    97         }
+    98     }
+    99
+   100     public static class CloseListener extends WindowAdapter {
+   101         @Override
+   102         public void windowClosing(WindowEvent e) {
+   103             e.getWindow().setVisible(false);
+   104             System.exit(0);
+   105         }
+   106     }
+   107 }
+
+
+
+  Page 53: `SliderGUI.java` (View: Slider)
+
+
+    1 import java.awt.Frame;
+    2 import java.awt.Scrollbar;
+    3 import java.awt.event.AdjustmentEvent;
+    4 import java.awt.event.AdjustmentListener;
+    5 import java.awt.event.WindowAdapter;
+    6 import java.awt.event.WindowEvent;
+    7 import java.util.Observable;
+    8 import java.util.Observer;
+    9
+   10 public class SliderGUI implements Observer {
+   11     private Scrollbar tempControl = new Scrollbar(Scrollbar.HORIZONTAL, 0, 10, -50, 160);
+   12     private TemperatureModel model = null;
+   13     private Frame sliderFrame = new Frame("Celsius");
+   14
+   15     public SliderGUI(TemperatureModel m, int h, int v) {
+   16         m.addObserver(this); // Observe the temperature model
+   17         model = m;
+   18         sliderFrame.add(tempControl);
+   19         tempControl.addAdjustmentListener(new SlideListener());
+   20         sliderFrame.setSize(250, 50);
+   21         sliderFrame.setLocation(h, v);
+   22         sliderFrame.setVisible(true);
+   23         sliderFrame.addWindowListener(new TemperatureGUI.CloseListener());
+   24     }
+   25
+   26     @Override
+   27     public void update(Observable t, Object o) {
+   28         double temp = ((TemperatureModel) t).getC();
+   29         tempControl.setValue((int) temp); // Move the slider thumb
+   30     }
+   31
+   32     class SlideListener implements AdjustmentListener {
+   33         @Override
+   34         public void adjustmentValueChanged(AdjustmentEvent e) {
+   35             model.setC(tempControl.getValue());
+   36         }
+   37     }
+   38 }
+
+
+  Page 54: `GraphGUI.java` (View: Graph)
+
+
+     1 import java.awt.Canvas;
+     2 import java.awt.Color;
+     3 import java.awt.Frame;
+     4 import java.awt.Graphics;
+     5 import java.awt.Panel;
+     6 import java.awt.event.WindowAdapter;
+     7 import java.awt.event.WindowEvent;
+     8 import java.util.Observable;
+     9 import java.util.Observer;
+    10
+    11 public class GraphGUI extends Frame implements Observer {
+    12     private TemperatureModel model;
+    13     private Canvas gauges;
+    14     private TemperatureGauge _farenheit;
+    15
+    16     public GraphGUI(TemperatureModel model, int h, int v) {
+    17         super("Temperature Gauge");
+    18         this.model = model;
+    19         _farenheit = new TemperatureGauge(-200, 300);
+    20         Panel Top = new Panel();
+    21         add("North", Top);
+    22         gauges = new TemperatureCanvas(_farenheit);
+    23         gauges.setSize(500, 1500); // This size seems very large, might be a typo in the
+       original
+    24         add("Center", gauges);
+    25         setSize(280, 280);
+    26         setLocation(h, v);
+    27         setVisible(true);
+    28         model.addObserver(this);
+    29     }
+    30
+    31     @Override
+    32     public void update(Observable obs, Object o) {
+    33         repaint();
+    34     }
+    35
+    36     @Override
+    37     public void paint(Graphics g) {
+    38         int farenheit = (int) model.getC();
+    39         _farenheit.set(farenheit);
+    40         gauges.repaint();
+    41         super.paint(g);
+    42     }
+    43
+    44     class TemperatureCanvas extends Canvas {
+    45         private TemperatureGauge _farenheit;
+    46         private static final int width = 20;
+    47         private static final int top = 20;
+    48         private static final int left = 100;
+    49         private static final int right = 250; // Not used
+    50         private static final int height = 150;
+    51
+    52         public TemperatureCanvas(TemperatureGauge farenheit) {
+    53             _farenheit = farenheit;
+    54         }
+    55
+    56         @Override
+    57         public void paint(Graphics g) {
+    58             g.setColor(Color.black);
+    59             g.drawRect(left, top, width, height);
+    60             g.setColor(Color.red);
+    61             g.fillOval(left + width / 2, top + height - width / 3, width * 2, width * 2); //
+       Thermometer bulb
+    62             g.setColor(Color.black);
+    63             g.drawOval(left + width / 2, top + height - width / 3, width * 2, width * 2); //
+       Thermometer bulb outline
+    64             g.setColor(Color.white);
+    65             g.fillRect(left + 1, top + 1, width - 1, height - 1); // Clear inside of
+       thermometer
+    66             g.setColor(Color.red);
+    67             long redtop = height * (_farenheit.get() - _farenheit.getMax()) /
+       (_farenheit.getMin() - _farenheit.getMax());
+    68             g.fillRect(left + 1, top + (int) redtop, width - 1, height - (int) redtop); //
+       Fill with red based on temperature
+    69         }
+    70     }
+    71
+    72     class TemperatureGauge {
+    73         private int Max, Min, current;
+    74
+    75         public TemperatureGauge(int min, int max) {
+    76             Min = min;
+    77             Max = max;
+    78         }
+    79
+    80         public void set(int level) {
+    81             current = level;
+    82         }
+    83
+    84         public int get() {
+    85             return current;
+    86         }
+    87
+    88         public int getMax() {
+    89             return Max;
+    90         }
+    91
+    92         public int getMin() {
+    93             return Min;
+    94         }
+    95     }
+    96
+    97     public static class CloseListener extends WindowAdapter {
+    98         @Override
+    99         public void windowClosing(WindowEvent e) {
+   100             e.getWindow().setVisible(false);
+   101             System.exit(0);
+   102         }
+   103     }
+   104 }
+
+
+  Page 55: `MVCTempConvert.java` (Main class)
+
+
+   1 public class MVCTempConvert {
+   2     public static void main(String args[]) {
+   3         TemperatureModel temperature = new TemperatureModel();
+   4         new TemperatureGUI(temperature, 100, 500);
+   5         new SliderGUI(temperature, 500, 100);
+   6         new GraphGUI(temperature, 100, 100);
+   7     }
+   8 }
