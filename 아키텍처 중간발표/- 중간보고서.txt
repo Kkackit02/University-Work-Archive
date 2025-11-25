@@ -1,0 +1,113 @@
+ - 중간보고서
+ - 발표자료 : 수업 듣는 학생들이 공불할 수 있도록 참고한 논문을 이해해서 자세한 발표를 포함  
+ - 발표영상 : 중간 발표 시간인 8분 이내로 축약한 발표영상
+
+
+ - Full 발표영상 : 관련된 기술을 충분히 설명하는 발표 영상 (시간 제한 X)
+요거는 그냥 되시는대로 내일 9시까지 각자 자기부분
+
+
+
+오늘은 최대한 문서작업을 많이해서
+서로 문제없게
+온르 되시는분은 계속 하시면되고
+
+내일 저녁 9시까지 녹화?
+
+
+11시 59분까지
+
+
+
+
+@ 텀 프로젝트 작품명 : Sos Editor 아키텍처 개선
+
+@ 팀 구성원 소개 : 정근녕 조용국 이륜재
+
+@ 작품소개 : 
+
+@ 핵심 문제(어려운 부분) 정의 및 해결방안(여러 개 있으면 다 쓰기)
+
+
+
+륜재
+
+
+
+
+용국
+
+
+@ SW 설계
+
+ - 요구사항(Requirements)
+
+ - 기능요구사항(Functional Requirements)
+
+ - 비기능요구사항(Non-Functional Requirements, Qualities, System Features)
+
+ - 사용사례(Use Cases)
+
+ - 사용사례 다이어그램 (Use Case Diagram)
+
+ - SW Architecure
+
+ - 배치도( Depolyment Diagram, 1page):
+
+  > 물리 시스템 구조도 + SW 서브시스템 또는 SW 모듈 배치도 
+
+ - 논리적인 SW 구도도(High-Level Logical SW Architecutre, 1page):
+
+  > SW 서브시스템 또는 SW 모듈로 이루어진 정적 SW 구조도
+
+ - 상세 SW(SW 서브시스템 또는 SW 모듈별)
+
+  > 클래스 다이어그램(Class Diagram)
+
+  > 상호작용 다이어그램 (Interactive Diagram)
+
+  > 콜레보레이션 다이어그램(Collaboration Diagram)
+
+  > 시퀀스 다이어그램(Sequence Diagram)
+
+@ 최종산출물(Deliverable) 구성 형태
+
+ - 최종 산출물 구성도 (Deployment Diagram + Distributed Layered Architecture)
+
+ - Application Layer
+
+  > 개발 모듈 이름
+
+  > 활용한 SW: 공개소스SW, 상용SW, 기존서비스API
+
+ - Platform Payer
+
+  > Pytorch | Python Environment
+
+ - Infra Layer
+
+  > OS 
+
+  > Machine: HW Machine, Hypervisor VM, Docker. Container VM
+
+- 최종 산출물 구성도에 대한 설명
+
+@ Risk Analysis + Risk Reduction Plan
+
+- 예상이 되는 문제들, 극복해야할 어려움들
+
+- 문제나 어려움들의 해결 계획
+
+@ Success Criteria: 
+
+- 테스트 방법 기술
+
+@상세역할분담
+
+@스케쥴Update
+
+@참고자료 리스트(년도, 출처, 제목, URL)
+
+@ 첨부: 참고 내용 정리 (공부한 내용)
+
+@ zip으로 압축(파일명 "중간보고서-팀번호-작품명.zip")
