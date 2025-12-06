@@ -1,0 +1,147 @@
+# ===== OS detection =====
+# Windows_NT (CMD/PowerShell), 그 외는 Unix 계열로 간주
+OS := $(shell uname -s 2>/dev/null || echo Windows_NT)
+
+ifeq ($(OS),Windows_NT)
+  EXE        := .exe
+  RM         := del /Q
+  RMDIR      := rmdir /S /Q
+  MKDIR      := mkdir
+  SEP        := \\
+  SHLIB_EXT  := dll
+  PATHSEP    := ;
+  # win_flex / win_bison 사용 시 이름 맞춰주세요
+  CC         ?= gcc
+  FLEX       ?= win_flex
+  BISON      ?= win_bison
+  # 보통 Windows에선 -lfl 불필요
+  LDLIBS     +=
+else
+  EXE        :=
+  RM         := rm -f
+  RMDIR      := rm -rf
+  MKDIR      := mkdir -p
+  SEP        := /
+  SHLIB_EXT  := so
+  PATHSEP    := :
+  CC         ?= cc
+  FLEX       ?= flex
+  BISON      ?= bison
+  # GNU flex라면 -lfl 필요할 수 있음
+  LDLIBS     += -lfl
+endif
+
+# ===== Project layout =====
+SRCDIR   := src
+INCDIR   := include
+BUILDDIR := build
+BINDIR   := bin
+TARGET   := app
+
+# ===== Compiler flags =====
+CSTD     ?= c11
+DEBUG    ?= 0
+WARNINGS ?= -Wall -Wextra -Wpedantic
+OPT      ?= -O2
+
+ifeq ($(DEBUG),1)
+  OPT := -O0 -g3
+endif
+
+CFLAGS   += -std=$(CSTD) $(WARNINGS) $(OPT) -I$(INCDIR)
+LDFLAGS  +=
+# LDLIBS 위에서 OS별로 일부 설정
+
+# ===== Sources (C) =====
+C_SOURCES := $(wildcard $(SRCDIR)/*.c)
+
+# ===== Optional flex/bison sources (auto-detect) =====
+LEX_SRC   := $(wildcard $(SRCDIR)/*.l)
+YACC_SRC  := $(wildcard $(SRCDIR)/*.y)
+
+# bison 산출물 이름 규칙: parser.y -> parser.tab.c / parser.tab.h
+GEN_C_FROM_Y := $(patsubst $(SRCDIR)/%.y,$(BUILDDIR)/%.tab.c,$(YACC_SRC))
+GEN_H_FROM_Y := $(patsubst $(SRCDIR)/%.y,$(BUILDDIR)/%.tab.h,$(YACC_SRC))
+
+# flex 산출물 이름 규칙: scanner.l -> lex.yy.c (여기선 빌드/로 보냄)
+GEN_C_FROM_L := $(patsubst $(SRCDIR)/%.l,$(BUILDDIR)/%_lex.c,$(LEX_SRC))
+
+# 전체 C 소스 = 순수 C + (옵션) bison/flex 생성 C
+ALL_C_SOURCES := $(C_SOURCES) $(GEN_C_FROM_Y) $(GEN_C_FROM_L)
+
+# 객체 파일
+OBJECTS := $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(filter $(SRCDIR)/%.c,$(ALL_C_SOURCES))) \
+           $(patsubst $(BUILDDIR)/%.c,$(BUILDDIR)/%.o,$(filter $(BUILDDIR)/%.c,$(ALL_C_SOURCES)))
+
+# 최종 바이너리
+BIN := $(BINDIR)/$(TARGET)$(EXE)
+
+# ===== Default target =====
+.PHONY: all
+all: prep $(BIN)
+
+# ===== Prepare dirs =====
+.PHONY: prep
+prep:
+	@$(MKDIR) "$(BINDIR)"
+	@$(MKDIR) "$(BUILDDIR)"
+
+# ===== Link =====
+$(BIN): $(OBJECTS)
+	@echo "[LD] $@"
+	@$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+# ===== Compile .c -> .o =====
+# src/*.c
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c
+	@echo "[CC] $<"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+# build/*.c (flex/bison 산출물)
+$(BUILDDIR)/%.o: $(BUILDDIR)/%.c
+	@echo "[CC] $<"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+# ===== Bison: .y -> .tab.c .tab.h =====
+# 예: src/parser.y -> build/parser.tab.c build/parser.tab.h
+$(BUILDDIR)/%.tab.c $(BUILDDIR)/%.tab.h: $(SRCDIR)/%.y | prep
+	@echo "[BISON] $<"
+	@$(BISON) -d -o $(BUILDDIR)/$*.tab.c $<
+
+# ===== Flex: .l -> *_lex.c =====
+# 예: src/scanner.l -> build/scanner_lex.c
+$(BUILDDIR)/%_lex.c: $(SRCDIR)/%.l | prep
+	@echo "[FLEX] $<"
+	@$(FLEX) -o$@ $<
+
+# ===== Convenience targets =====
+.PHONY: run
+run: all
+	@echo "[RUN] $(BIN)"
+	@$(BIN)
+
+.PHONY: clean
+clean:
+	@echo "[CLEAN] build"
+	@-$(RMDIR) "$(BUILDDIR)" 2> NUL || true
+	@echo "[CLEAN] bin"
+	@-$(RMDIR) "$(BINDIR)" 2> NUL || true
+
+.PHONY: distclean
+distclean: clean
+
+.PHONY: rebuild
+rebuild: clean all
+
+# ===== Help =====
+.PHONY: help
+help:
+	@echo "Targets:"
+	@echo "  all        - 빌드"
+	@echo "  run        - 빌드 후 실행"
+	@echo "  clean      - 산출물(clean)"
+	@echo "  distclean  - clean 동일 (필요 시 확장)"
+	@echo "  rebuild    - 전체 재빌드"
+	@echo "Variables (override 가능):"
+	@echo "  TARGET, SRCDIR, INCDIR, BINDIR, BUILDDIR"
+	@echo "  CC, CSTD, DEBUG(0|1), WARNINGS, OPT, CFLAGS, LDFLAGS, LDLIBS"
