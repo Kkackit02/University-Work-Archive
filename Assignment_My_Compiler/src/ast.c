@@ -48,6 +48,14 @@ Expr *new_call_expr(const char *func_name, ExprList *args) {
     return e;
 }
 
+Expr *new_assign_expr(const char *name, Expr *value) {
+    Expr *e = (Expr *)calloc(1, sizeof(Expr));
+    e->kind = EXPR_ASSIGN;
+    e->u.assign_expr.var_name = strdup_s(name);
+    e->u.assign_expr.value = value;
+    return e;
+}
+
 ExprList *expr_list_append(ExprList *list, Expr *expr) {
     ExprList *node = (ExprList *)calloc(1, sizeof(ExprList));
     node->expr = expr;
@@ -75,10 +83,11 @@ Stmt *new_return_stmt(Expr *e) {
     return s;
 }
 
-Stmt *new_vardecl_stmt(const char *name) {
+Stmt *new_vardecl_stmt(const char *name, Expr *initial_value) {
     Stmt *s = (Stmt *)calloc(1, sizeof(Stmt));
     s->kind = STMT_VARDECL;
     s->u.vardecl.var_name = strdup_s(name);
+    s->u.vardecl.initial_value = initial_value;
     return s;
 }
 
@@ -87,6 +96,33 @@ Stmt *new_assign_stmt(const char *name, Expr *value) {
     s->kind = STMT_ASSIGN;
     s->u.assign.var_name = strdup_s(name);
     s->u.assign.value = value;
+    return s;
+}
+
+Stmt *new_if_stmt(Expr *cond, StmtList *then_body, StmtList *else_body) {
+    Stmt *s = (Stmt *)calloc(1, sizeof(Stmt));
+    s->kind = STMT_IF;
+    s->u.if_stmt.cond = cond;
+    s->u.if_stmt.then_body = then_body;
+    s->u.if_stmt.else_body = else_body;
+    return s;
+}
+
+Stmt *new_while_stmt(Expr *cond, StmtList *body) {
+    Stmt *s = (Stmt *)calloc(1, sizeof(Stmt));
+    s->kind = STMT_WHILE;
+    s->u.while_stmt.cond = cond;
+    s->u.while_stmt.body = body;
+    return s;
+}
+
+Stmt *new_for_stmt(Stmt *init, Expr *cond, Expr *increment, StmtList *body) {
+    Stmt *s = (Stmt *)calloc(1, sizeof(Stmt));
+    s->kind = STMT_FOR;
+    s->u.for_stmt.init = init;
+    s->u.for_stmt.cond = cond;
+    s->u.for_stmt.increment = increment;
+    s->u.for_stmt.body = body;
     return s;
 }
 

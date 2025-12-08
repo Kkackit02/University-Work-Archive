@@ -19,25 +19,31 @@ void yyerror(const char *s);
     FunctionList *function_list;
 }
 
-%token INT RETURN
+%token INT RETURN IF ELSE WHILE FOR
 %token <int_value> NUMBER
 %token <ident> IDENT
+%token EQ NE LT GT LE GE
 
 %type <expr> expr primary
 %type <expr_list> arg_list arg_list_opt
-%type <stmt> stmt vardecl assign
+%type <stmt> stmt vardecl if_stmt while_stmt for_stmt
+%type <stmt> for_init_opt
+%type <expr> for_cond_opt for_increment_opt
 %type <stmt_list> stmt_list stmt_list_opt compound_stmt
 %type <param_list> param_list param_list_opt
 %type <function> function
 %type <function_list> func_list program
 
+%right '='
+%left EQ NE
+%left LT GT LE GE
 %left '+' '-'
 %left '*' '/'
 
 %%
 
 program
-    : func_list                { g_program = $1; }
+    : func_list                { g_program = $$; }
     ;
 
 func_list
@@ -77,17 +83,43 @@ stmt_list
 
 stmt
     : vardecl ';'              { $$ = $1; }
-    | assign ';'               { $$ = $1; }
     | RETURN expr ';'          { $$ = new_return_stmt($2); }
     | expr ';'                 { $$ = new_expr_stmt($1); }
+    | if_stmt                  { $$ = $1; }
+    | while_stmt               { $$ = $1; }
+    | for_stmt                 { $$ = $1; }
     ;
+
+if_stmt
+    : IF '(' expr ')' compound_stmt                 { $$ = new_if_stmt($3, $5, NULL); }
+    | IF '(' expr ')' compound_stmt ELSE compound_stmt { $$ = new_if_stmt($3, $5, $7); }
+    ;
+
+while_stmt
+    : WHILE '(' expr ')' compound_stmt              { $$ = new_while_stmt($3, $5); }
+
+for_stmt
+    : FOR '(' for_init_opt ';' for_cond_opt ';' for_increment_opt ')' compound_stmt
+                              { $$ = new_for_stmt($3, $5, $7, $9); }
+    ;
+
+for_init_opt
+    : /* empty */              { $$ = NULL; }
+    | INT IDENT                { $$ = new_vardecl_stmt($2, NULL); }
+    | INT IDENT '=' expr       { $$ = new_vardecl_stmt($2, $4); }
+    | expr                     { $$ = new_expr_stmt($1); }
+
+for_cond_opt
+    : /* empty */              { $$ = NULL; }
+    | expr                     { $$ = $1; }
+
+for_increment_opt
+    : /* empty */              { $$ = NULL; }
+    | expr                     { $$ = $1; }
 
 vardecl
-    : INT IDENT                { $$ = new_vardecl_stmt($2); }
-    ;
-
-assign
-    : IDENT '=' expr           { $$ = new_assign_stmt($1, $3); }
+    : INT IDENT                { $$ = new_vardecl_stmt($2, NULL); }
+    | INT IDENT '=' expr       { $$ = new_vardecl_stmt($2, $4); }
     ;
 
 expr
@@ -95,6 +127,13 @@ expr
     | expr '-' expr            { $$ = new_binop_expr(BIN_SUB, $1, $3); }
     | expr '*' expr            { $$ = new_binop_expr(BIN_MUL, $1, $3); }
     | expr '/' expr            { $$ = new_binop_expr(BIN_DIV, $1, $3); }
+    | expr EQ expr             { $$ = new_binop_expr(BIN_EQ, $1, $3); }
+    | expr NE expr             { $$ = new_binop_expr(BIN_NE, $1, $3); }
+    | expr LT expr             { $$ = new_binop_expr(BIN_LT, $1, $3); }
+    | expr GT expr             { $$ = new_binop_expr(BIN_GT, $1, $3); }
+    | expr LE expr             { $$ = new_binop_expr(BIN_LE, $1, $3); }
+    | expr GE expr             { $$ = new_binop_expr(BIN_GE, $1, $3); }
+    | IDENT '=' expr           { $$ = new_assign_expr($1, $3); }
     | primary                  { $$ = $1; }
     ;
 

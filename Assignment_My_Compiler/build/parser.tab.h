@@ -40,8 +40,18 @@
    enum yytokentype {
      INT = 258,
      RETURN = 259,
-     NUMBER = 260,
-     IDENT = 261
+     IF = 260,
+     ELSE = 261,
+     WHILE = 262,
+     FOR = 263,
+     NUMBER = 264,
+     IDENT = 265,
+     EQ = 266,
+     NE = 267,
+     LT = 268,
+     GT = 269,
+     LE = 270,
+     GE = 271
    };
 #endif
 
@@ -67,7 +77,7 @@ typedef union YYSTYPE
 
 
 /* Line 1685 of yacc.c  */
-#line 71 "build/parser.tab.h"
+#line 81 "build/parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -53,6 +53,15 @@ static void alloc_locals_and_params(Function *f, Var *vars, int *var_count, int 
                     count++;
                     local_offset -= 4;
                 }
+            } else if (s->kind == STMT_FOR) {
+                if (s->u.for_stmt.init && s->u.for_stmt.init->kind == STMT_VARDECL) {
+                    if (find_var(vars, count, s->u.for_stmt.init->u.vardecl.var_name) < 0) {
+                        vars[count].name = s->u.for_stmt.init->u.vardecl.var_name;
+                        vars[count].offset = local_offset;
+                        count++;
+                        local_offset -= 4;
+                    }
+                }
             }
             s = s->next;
         }
@@ -63,6 +72,8 @@ static void alloc_locals_and_params(Function *f, Var *vars, int *var_count, int 
 }
 
 static void gen_expr(Expr *e, Var *vars, int var_count);
+
+static void gen_stmt(Stmt *s, Var *vars, int var_count, const char *func_name);
 
 /* 변수 위치에서 eax 로드 */
 static void load_var_to_eax(const char *name, Var *vars, int var_count) {
@@ -96,6 +107,21 @@ static void gen_binop(Expr *e, Var *vars, int var_count) {
         /* lhs / rhs, lhs=eax, rhs=ecx */
         printf("    cdq                  # sign-extend eax -> edx:eax\n");
         printf("    idivl %%ecx          # lhs / rhs, quotient in eax\n");
+        break;
+    case BIN_EQ:
+    case BIN_NE:
+    case BIN_LT:
+    case BIN_GT:
+    case BIN_LE:
+    case BIN_GE:
+        printf("    cmpl %%ecx, %%eax\n");
+        printf("    movl $0, %%eax\n"); // 일단 eax를 0으로 초기화
+        if (e->u.binop.op == BIN_EQ) printf("    sete %%al\n");
+        if (e->u.binop.op == BIN_NE) printf("    setne %%al\n");
+        if (e->u.binop.op == BIN_LT) printf("    setl %%al\n");
+        if (e->u.binop.op == BIN_GT) printf("    setg %%al\n");
+        if (e->u.binop.op == BIN_LE) printf("    setle %%al\n");
+        if (e->u.binop.op == BIN_GE) printf("    setge %%al\n");
         break;
     default:
         printf("    # unknown binop\n");
@@ -149,19 +175,41 @@ static void gen_expr(Expr *e, Var *vars, int var_count) {
     case EXPR_CALL:
         gen_call(e, vars, var_count);
         break;
+    case EXPR_ASSIGN: {
+        gen_expr(e->u.assign_expr.value, vars, var_count); /* eax = value */
+        int idx = find_var(vars, var_count, e->u.assign_expr.var_name);
+        if (idx < 0) {
+            fprintf(stderr, "Unknown variable in assign expr: %s\n", e->u.assign_expr.var_name);
+            exit(1);
+        }
+        int off = vars[idx].offset;
+        printf("    movl %%eax, %d(%%ebp)   # %s = eax (assign expr)\n", off, e->u.assign_expr.var_name);
+        break;
+    }
     default:
         printf("    # unknown expr kind\n");
         break;
     }
 }
 
-static void gen_stmt(Stmt *s, Var *vars, int var_count, const char *end_label) {
+static void gen_stmt(Stmt *s, Var *vars, int var_count, const char *func_name) {
     if (!s) return;
 
     switch (s->kind) {
-    case STMT_VARDECL:
+    case STMT_VARDECL: {
         printf("    # var %s\n", s->u.vardecl.var_name);
+        if (s->u.vardecl.initial_value) {
+            gen_expr(s->u.vardecl.initial_value, vars, var_count); /* eax = initial_value */
+            int idx = find_var(vars, var_count, s->u.vardecl.var_name);
+            if (idx < 0) {
+                fprintf(stderr, "Unknown variable in vardecl with init: %s\n", s->u.vardecl.var_name);
+                exit(1);
+            }
+            int off = vars[idx].offset;
+            printf("    movl %%eax, %d(%%ebp)   # %s = eax (initialization)\n", off, s->u.vardecl.var_name);
+        }
         break;
+    }
     case STMT_ASSIGN: {
         gen_expr(s->u.assign.value, vars, var_count); /* eax = value */
         int idx = find_var(vars, var_count, s->u.assign.var_name);
@@ -178,8 +226,113 @@ static void gen_stmt(Stmt *s, Var *vars, int var_count, const char *end_label) {
         break;
     case STMT_RETURN:
         gen_expr(s->u.expr, vars, var_count);   /* eax = return value */
-        printf("    jmp %s\n", end_label);
+        printf("    jmp .Lend_%s\n", func_name);
         break;
+    case STMT_IF: {
+        static int if_count = 0;
+        int current_if_id = if_count++;
+        char else_label[64], end_if_label[64];
+        snprintf(else_label, sizeof(else_label), ".L_else_%d", current_if_id);
+        snprintf(end_if_label, sizeof(end_if_label), ".L_endif_%d", current_if_id);
+
+        gen_expr(s->u.if_stmt.cond, vars, var_count); // 조건 평가, 결과는 eax에
+        printf("    cmpl $0, %%eax\n"); // eax가 0이면 거짓
+        if (s->u.if_stmt.else_body) {
+            printf("    je %s\n", else_label); // 거짓이면 else_label로 점프
+        } else {
+            printf("    je %s\n", end_if_label); // 거짓이면 endif_label로 점프 (else 없음)
+        }
+
+        // then_body
+        if (s->u.if_stmt.then_body) {
+            Stmt *current_then_stmt = s->u.if_stmt.then_body->head;
+            while (current_then_stmt) {
+                gen_stmt(current_then_stmt, vars, var_count, func_name);
+                current_then_stmt = current_then_stmt->next;
+            }
+        }
+        printf("    jmp %s\n", end_if_label); // then_body 실행 후 endif_label로 점프
+
+        // else_body (있을 경우)
+        if (s->u.if_stmt.else_body) {
+            printf("%s:\n", else_label); // else_label 정의
+            Stmt *current_else_stmt = s->u.if_stmt.else_body->head;
+            while (current_else_stmt) {
+                gen_stmt(current_else_stmt, vars, var_count, func_name);
+                current_else_stmt = current_else_stmt->next;
+            }
+        }
+        printf("%s:\n", end_if_label); // endif_label 정의
+        break;
+    }
+    case STMT_WHILE: {
+        static int while_count = 0;
+        int current_while_id = while_count++;
+        char loop_label[64], end_loop_label[64];
+        snprintf(loop_label, sizeof(loop_label), ".L_loop_%d", current_while_id);
+        snprintf(end_loop_label, sizeof(end_loop_label), ".L_endloop_%d", current_while_id);
+
+        printf("%s:\n", loop_label); // 루프 시작 레이블
+
+        gen_expr(s->u.while_stmt.cond, vars, var_count); // 조건 평가, 결과는 eax에
+        printf("    cmpl $0, %%eax\n"); // eax가 0이면 거짓
+        printf("    je %s\n", end_loop_label); // 거짓이면 루프 종료 레이블로 점프
+
+        // 루프 본문
+        if (s->u.while_stmt.body) {
+            Stmt *current_body_stmt = s->u.while_stmt.body->head;
+            while (current_body_stmt) {
+                gen_stmt(current_body_stmt, vars, var_count, func_name);
+                current_body_stmt = current_body_stmt->next;
+            }
+        }
+        printf("    jmp %s\n", loop_label); // 본문 실행 후 루프 시작으로 다시 점프
+
+        printf("%s:\n", end_loop_label); // 루프 종료 레이블
+        break;
+    }
+    case STMT_FOR: {
+        static int for_count = 0;
+        int current_for_id = for_count++;
+        char loop_label[64], end_loop_label[64], increment_label[64];
+        snprintf(loop_label, sizeof(loop_label), ".L_for_loop_%d", current_for_id);
+        snprintf(end_loop_label, sizeof(end_loop_label), ".L_for_endloop_%d", current_for_id);
+        snprintf(increment_label, sizeof(increment_label), ".L_for_increment_%d", current_for_id); // New label for increment
+
+        // 1. Initialization (init)
+        if (s->u.for_stmt.init) {
+            gen_stmt(s->u.for_stmt.init, vars, var_count, func_name);
+        }
+
+        printf("%s:\n", loop_label); // Loop condition check label
+
+        // 2. Condition (cond)
+        if (s->u.for_stmt.cond) {
+            gen_expr(s->u.for_stmt.cond, vars, var_count); // Evaluate condition, result in eax
+            printf("    cmpl $0, %%eax\n"); // Compare eax with 0 (false)
+            printf("    je %s\n", end_loop_label); // If false, jump to end of loop
+        }
+
+        // 3. Loop Body
+        if (s->u.for_stmt.body) {
+            Stmt *current_body_stmt = s->u.for_stmt.body->head;
+            while (current_body_stmt) {
+                gen_stmt(current_body_stmt, vars, var_count, func_name);
+                current_body_stmt = current_body_stmt->next;
+            }
+        }
+
+        // 4. Increment (increment)
+        printf("%s:\n", increment_label); // Label for increment
+        if (s->u.for_stmt.increment) {
+            gen_expr(s->u.for_stmt.increment, vars, var_count); // Evaluate increment expression
+        }
+
+        printf("    jmp %s\n", loop_label); // Jump back to loop condition check
+
+        printf("%s:\n", end_loop_label); // End of loop label
+        break;
+    }
     default:
         printf("    # unknown stmt kind\n");
         break;
@@ -215,7 +368,7 @@ static void gen_function(Function *f) {
     if (f->body) {
         Stmt *s = f->body->head;
         while (s) {
-            gen_stmt(s, vars, var_count, end_label);
+            gen_stmt(s, vars, var_count, f->name); // func_name 전달
             s = s->next;
         }
     }
@@ -235,6 +388,16 @@ static int has_return_stmt(StmtList *body) {
     Stmt *s = body->head;
     while (s) {
         if (s->kind == STMT_RETURN) return 1;
+        if (s->kind == STMT_IF) {
+            if (has_return_stmt(s->u.if_stmt.then_body)) return 1;
+            if (has_return_stmt(s->u.if_stmt.else_body)) return 1;
+        }
+        if (s->kind == STMT_WHILE) {
+            if (has_return_stmt(s->u.while_stmt.body)) return 1;
+        }
+        if (s->kind == STMT_FOR) {
+            if (has_return_stmt(s->u.for_stmt.body)) return 1;
+        }
         s = s->next;
     }
     return 0;

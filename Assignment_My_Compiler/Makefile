@@ -19,7 +19,7 @@ minic_x86: $(BUILD_DIR) $(OBJS)
 	$(CC) -o $@ $(OBJS)
 
 $(BUILD_DIR)/parser.tab.c $(BUILD_DIR)/parser.tab.h: parser/parser.y | $(BUILD_DIR)
-	bison -d -o $(BUILD_DIR)/parser.tab.c parser/parser.y
+	bison -d -v -o $(BUILD_DIR)/parser.tab.c parser/parser.y
 
 $(BUILD_DIR)/lexer.c: parser/lexer.l $(BUILD_DIR)/parser.tab.h | $(BUILD_DIR)
 	flex -o $(BUILD_DIR)/lexer.c parser/lexer.l
