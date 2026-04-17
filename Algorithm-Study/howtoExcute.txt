@@ -1,0 +1,10 @@
+    // 컴파일
+    {
+        "key": "ctrl+alt+c",
+        "command": "workbench.action.tasks.build"
+    },
+    // 실행
+    {
+        "key": "ctrl+alt+r",
+        "command": "workbench.action.tasks.test"
+    }

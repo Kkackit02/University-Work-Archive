@@ -1,0 +1,1 @@
+{"name":"Local: gpt_4901","url":"d:\\GitClone\\Konkuk_Algorithm_Class\\gpt_4901.cpp","tests":[{"id":1733222312172,"input":"6 2\n7 7 8 5 4 5\n1 9\n1 5","output":"6\n4"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"d:\\GitClone\\Konkuk_Algorithm_Class\\gpt_4901.cpp","group":"local","local":true}
