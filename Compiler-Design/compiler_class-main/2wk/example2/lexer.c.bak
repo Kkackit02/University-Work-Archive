@@ -1,0 +1,138 @@
+#include <ctype.h>
+#include <string.h>
+#include "lexer.h"
+
+static Token make(Lexer* lx, TokenType t, const char* s, int len, long long v, int sl, int sc) {
+    Token tk = { t, s, len, v, sl, sc };
+    return tk;
+}
+
+static int is_ident_start(int c){ return isalpha(c) || c=='_'; }
+static int is_ident_rest (int c){ return isalnum(c) || c=='_'; }
+
+static void advance_char(Lexer* lx) {
+    char c = lx->src[lx->pos++];
+    if (c == '\n') { lx->line++; lx->col = 1; }
+    else           { lx->col++; }
+}
+
+static char peek_char(Lexer* lx){ return lx->src[lx->pos]; }
+static char peek_next(Lexer* lx){ return lx->src[lx->pos+1]; }
+
+static void skip_ws_and_comments(Lexer* lx){
+    for(;;){
+        // 공백류
+        while (isspace((unsigned char)peek_char(lx))) advance_char(lx);
+
+        // // 한 줄 주석
+        if (peek_char(lx)=='/' && peek_next(lx)=='/') {
+            while(peek_char(lx) && peek_char(lx)!='\n') advance_char(lx);
+            continue;
+        }
+        // /* ... */ 블록 주석
+        if (peek_char(lx)=='/' && peek_next(lx)=='*') {
+            advance_char(lx); advance_char(lx); // consume '/*'
+            while(peek_char(lx)){
+                if (peek_char(lx)=='*' && peek_next(lx)=='/'){ advance_char(lx); advance_char(lx); break; }
+                advance_char(lx);
+            }
+            continue;
+        }
+        break;
+    }
+}
+
+static Token keyword_or_ident(Lexer* lx, const char* start, int sl, int sc) {
+    while (is_ident_rest((unsigned char)peek_char(lx))) { advance_char(lx); }
+    int len = (lx->src + lx->pos) - start;
+    // 키워드 판별
+    if (len==3 && strncmp(start,"int",3)==0)    return make(lx, T_KW_INT,    start, len, 0, sl, sc);
+    if (len==6 && strncmp(start,"return",6)==0) return make(lx, T_KW_RETURN, start, len, 0, sl, sc);
+    if (len==2 && strncmp(start,"if",2)==0)     return make(lx, T_KW_IF,     start, len, 0, sl, sc);
+    if (len==4 && strncmp(start,"else",4)==0)   return make(lx, T_KW_ELSE,   start, len, 0, sl, sc);
+    if (len==5 && strncmp(start,"while",5)==0)  return make(lx, T_KW_WHILE,  start, len, 0, sl, sc);
+    return make(lx, T_IDENT, start, len, 0, sl, sc);
+}
+
+static Token number_token(Lexer* lx, const char* start, int sl, int sc) {
+    long long v = *start - '0';
+    while (isdigit((unsigned char)peek_char(lx))) { v = v*10 + (peek_char(lx)-'0'); advance_char(lx); }
+    int len = (lx->src + lx->pos) - start;
+    return make(lx, T_NUMBER, start, len, v, sl, sc);
+}
+
+void lexer_init(Lexer* lx, const char* src) {
+    lx->src = src; lx->pos = 0; lx->line = 1; lx->col = 1;
+}
+
+Token lexer_next(Lexer* lx) {
+    skip_ws_and_comments(lx);
+
+    const char* s = lx->src + lx->pos;
+    char c = *s;
+    int sl = lx->line, sc = lx->col;
+
+    if (!c) return make(lx, T_EOF, s, 0, 0, sl, sc);
+
+    if (is_ident_start((unsigned char)c)) {
+        advance_char(lx);
+        return keyword_or_ident(lx, s, sl, sc);
+    }
+    if (isdigit((unsigned char)c)) {
+        advance_char(lx);
+        return number_token(lx, s, sl, sc);
+    }
+
+    advance_char(lx);
+    switch (c) {
+        case '+': return make(lx, T_PLUS,  s, 1, 0, sl, sc);
+        case '-': return make(lx, T_MINUS, s, 1, 0, sl, sc);
+        case '*': return make(lx, T_MUL,   s, 1, 0, sl, sc);
+        case '/': return make(lx, T_DIV,   s, 1, 0, sl, sc);
+        case '=': return make(lx, T_ASSIGN,s, 1, 0, sl, sc);
+        case '>': return make(lx, T_GT,    s, 1, 0, sl, sc);
+        case '<': return make(lx, T_LT,    s, 1, 0, sl, sc);
+        case ';': return make(lx, T_SEMI,  s, 1, 0, sl, sc);
+        case ',': return make(lx, T_COMMA, s, 1, 0, sl, sc);
+        case '(': return make(lx, T_LPAREN,s, 1, 0, sl, sc);
+        case ')': return make(lx, T_RPAREN,s, 1, 0, sl, sc);
+        case '{': return make(lx, T_LBRACE,s, 1, 0, sl, sc);
+        case '}': return make(lx, T_RBRACE,s, 1, 0, sl, sc);
+        default:  return make(lx, T_ERROR, s, 1, 0, sl, sc);
+    }
+}
+
+Token lexer_peek(Lexer* lx) {
+    Lexer save = *lx;
+    Token t = lexer_next(lx);
+    *lx = save;
+    return t;
+}
+
+const char* token_type_name(TokenType t) {
+    switch(t){
+    case T_EOF: return "EOF";
+    case T_ERROR: return "ERROR";
+    case T_IDENT: return "IDENT";
+    case T_NUMBER: return "NUMBER";
+    case T_KW_INT: return "KW_INT";
+    case T_KW_RETURN: return "KW_RETURN";
+    case T_KW_IF: return "KW_IF";
+    case T_KW_ELSE: return "KW_ELSE";
+    case T_KW_WHILE: return "KW_WHILE";
+    case T_PLUS: return "PLUS";
+    case T_MINUS: return "MINUS";
+    case T_MUL: return "MUL";
+    case T_DIV: return "DIV";
+    case T_ASSIGN: return "ASSIGN";
+    case T_GT: return "GT";
+	case T_LT: return "LT";
+    case T_SEMI: return "SEMI";
+    case T_COMMA: return "COMMA";
+    case T_LPAREN: return "LPAREN";
+    case T_RPAREN: return "RPAREN";
+    case T_LBRACE: return "LBRACE";
+    case T_RBRACE: return "RBRACE";
+    default: return "?";
+    }
+}

@@ -1,0 +1,14 @@
+#ifndef LEXER_H
+#define LEXER_H
+#include "token.h"
+
+typedef struct {
+    const char* src;
+    int pos, line, col;
+} Lexer;
+
+void lexer_init(Lexer* lx, const char* src);
+Token lexer_next(Lexer* lx);   // 다음 토큰 소비
+Token lexer_peek(Lexer* lx);   // 다음 토큰 미리보기(소비 X)
+
+#endif
