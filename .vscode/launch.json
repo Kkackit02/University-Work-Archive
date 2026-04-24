@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "d:/GitClone/Baekjoon_Code",
-      "program": "d:/GitClone/Baekjoon_Code/build/Debug/outDebug",
+      "cwd": "d:/GitClone/Baekjoon_Code/Code/Greedy Algorithm",
+      "program": "d:/GitClone/Baekjoon_Code/Code/Greedy Algorithm/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
