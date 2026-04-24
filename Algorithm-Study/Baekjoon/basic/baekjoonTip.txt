@@ -1,0 +1,161 @@
+
+string str;
+getline(cin, str);
+공백이 포함된 한 줄 전체를 string에 받아올때.
+
+
+
+ios::sync_with_stdio(0); //printf, scanf 페어링 끄기. 
+cin.tie(0); // 입출력반복될때 처리
+이걸 치면 printf, scanf쓰면 안된다.
+					 
+#include<bits/stdc++h>
+모든 헤드가 있는 슈퍼셋
+
+
+
+
+입력개수가 명시되지 않은 입력을 받는법
+while(cin << n)
+	
+	
+	
+int n;
+while(scanf("%d", &n)!=EOF)
+{
+    //do something
+	//-> C 스타일
+}
+
+
+1. 적절한 자료형 선택
+문제를 풀다보면 숫자의 범위가 int 인것도 있지만 0~10000 같은 작은범위일 때도 종종있습니다. 
+이런숫자를 배열에 담을때 int로 하는것보다 short로 할때 확실하게 성능차이가 있습니다. 메모리 감소는 덤으로.. 
+특히 bool 형으로 표시 가능한 경우 int형의 경우보다 체감하기 좋습니다.
+	
+2. 초기화에 memset 활용
+배열을 0이나 -1등으로 초기화 하는 방법은 배열을 선언과 동시에 초기화 하는 방법(0 한정), 
+for문으로 직접 적용, 
+memset, std::fill 등이 있는데 
+저는 memset을 추천합니다.
+
+memset은 내부적으로 8바이트 단위의 초기화가 되어있습니다. 
+따라서 int형 배열 초기화에 for문보다 적어도 2배이상 빠르게 동작함을 알 수 있죠.. 
+특히 테스트케이스가 존재하는 문제에서 효과가 많습니다.
+
+endl
+endl은 개행문자를 출력하고 출력 버퍼를 비우라는 명령이다. 
+저지는 프로그램이 종료될 때 출력이 어떻게 되는지를 가지고 채점을 진행하기 때문에 중간 중간에 버퍼를 비우라는 명령을 할 필요가 없다. 
+줄바꿈이 필요하면 ‘\n’ 개행문자를 출력하면 된다. 
+따라서 endl의 사용은 추천되지 않는다.
+
+
+
+
+배열의 전체를 특정한 값을 초기화 시킬 때
+int a[21];
+int b[21][21];
+
+// 1. cstring 헤더의 memset // 0이나 -1이 아니거나 2차원 이상의 배열을 함수 인자로 넘길 때 오류 발생할 확률 존재 / 비추천
+memset(a,0,sizeof a);
+memset(b,0,sizeof b);
+
+// 2. for문 // 투박하지만 오류 없음 / 무난
+for(int i = 0 ; i < 21 ; i++)
+  a[i] = 0;
+for(int i = 0 ; i < 21 ; i++)
+  for(int j = 0 ; j < 21 ; j++) 
+    b[i][j] = 0;
+
+// 3. algorithm 헤더의 fill / 추천
+fill(a, a+21, 0);
+fill(int i = 0 ; i < 21 ; i++)
+  fil(b[i], b[i]+21, 0);
+  
+  
+
+endl
+endl은 개행문자를 출력하고 출력 버퍼를 비우라는 명령이다. 저지는 프로그램이 종료될 때 출력이 어떻게 되는지를 가지고 채점을 진행하기 때문에 중간 중간에 버퍼를 비우라는 명령을 할 필요가 없다. 줄바꿈이 필요하면 ‘\n’ 개행문자를 출력하면 된다. 따라서 endl의 사용은 추천되지 않는다.
+
+배열의 전체를 특정한 값을 초기화 시킬 때Permalink
+int a[21];
+int b[21][21];
+
+// 1. cstring 헤더의 memset // 0이나 -1이 아니거나 2차원 이상의 배열을 함수 인자로 넘길 때 오류 발생할 확률 존재 / 비추천
+memset(a,0,sizeof a);
+memset(b,0,sizeof b);
+
+// 2. for문 // 투박하지만 오류 없음 / 무난
+for(int i = 0 ; i < 21 ; i++)
+  a[i] = 0;
+for(int i = 0 ; i < 21 ; i++)
+  for(int j = 0 ; j < 21 ; j++) 
+    b[i][j] = 0;
+
+// 3. algorithm 헤더의 fill / 추천
+fill(a, a+21, 0);
+fill(int i = 0 ; i < 21 ; i++)
+  fil(b[i], b[i]+21, 0);
+  
+  
+  
+  
+vector
+배열할당 필요 없음
+insert(), erase(), push_back(), pop_back() 등 기능 구현 완료
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(void) {
+  vector<int> v1(3, 5); // {5,5,5};
+  cout << v1.size() << '\n'; // 3
+  v1.push_back(7); // {5,5,5,7};
+
+  vector<int> v2(2); // {0,0};
+  v2.insert(v2.begin()+1, 3); // {0,3,0};
+
+  vector<int> v3 = {1,2,3,4}; // {1,2,3,4}
+  v3.erase(v3.begin()+2); // {1,2,4};
+
+  vector<int> v4; // {}
+  v4 = v3; // {1,2,4}
+  cout << v4[0] << v4[1] << v4[2] << '\n';
+  v4.pop_back(); // {1,2}
+  v4.clear(); // {}
+}
+
+
+
+
+
+list
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(void) {
+  list<int> L = {1,2}; // 1 2
+  list<int>::iterator t = L.begin(); // t는 1을 가리키는 중
+  L.push_front(10); // 10 1 2
+  cout << *t << '\n'; // t가 가리키는 값 = 1을 출력
+  L.push_back(5); // 10 1 2 5
+  L.insert(t, 6); // t가 가리키는 곳 앞에 6을 삽입, 10 6 1 2 5
+  t++; // t를 1칸 앞으로 전진, 현재 t가 가리키는 값은 2
+  t = L.erase(t); // t가 가리키는 값을 제거, 그 다음 원소인 5의 위치를 반환
+                  // 10 6 1 5, t가 가리키는 값은 5
+  cout << *t << '\n'; // 5
+  for(auto i : L) cout << i << ' ';
+  cout << '\n';
+  for(list<int>::iterator it = L.begin(); it != L.end(); it++)
+    cout << *it << ' ';
+}
+
+
+
+코딩테스트 코드 작성 팁Permalink
+코딩테스트와 개발은 다르다
+어떻게든 타이핑을 줄이는 게 좋다. 조금 더럽더라도 내가 빠르게 짤 수 있는 방식으로 빠르게 구현하는게 훨씬 중요하다.
+출력 맨 마지막에 공백 혹은 줄바꿈이 추가로 있어도 괜찮다
+
+
+
+https://velog.io/@taehyeon96/DFS-BFS-%ED%95%B5%EC%8B%AC-%EC%84%A4%EB%AA%85-%EC%A4%91%EC%9A%94

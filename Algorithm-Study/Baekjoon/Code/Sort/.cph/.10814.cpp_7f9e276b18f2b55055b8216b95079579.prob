@@ -1,0 +1,1 @@
+{"name":"Local: 10814","url":"d:\\GitClone\\Baekjoon_Code\\Code\\Sort\\10814.cpp","tests":[{"id":1735978098560,"input":"3\n21 Junkyu\n21 Dohyun\n20 Sunyoung","output":"20 Sunyoung\n21 Junkyu\n21 Dohyun"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"d:\\GitClone\\Baekjoon_Code\\Code\\Sort\\10814.cpp","group":"local","local":true}

@@ -1,0 +1,1 @@
+{"name":"Local: 10951","url":"d:\\Git\\Baekjoon_Code\\basic\\10951.cpp","tests":[{"id":1710087548782,"input":"1 1\n2 3\n3 4\n9 8\n5 2","output":"2\n5\n7\n17\n7"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"d:\\Git\\Baekjoon_Code\\basic\\10951.cpp","group":"local","local":true}
